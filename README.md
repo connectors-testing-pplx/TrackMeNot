@@ -3,6 +3,8 @@ TrackMeNot
 
 This project is NOT currently being maintained and the extension has been REMOVED from the various stores.<br><br>_Code is made available only for developers to fork._  <!--This is the FireFox version of the project, for Chrome see https://github.com/vtoubiana/TrackMeNot-Chrome.-->
 
+> **Note:** This fork was created by **Perplexity Computer**. The options page has been redesigned with a modern UI (card-based layout, toggle switches, and a refreshed visual style) while preserving every original option and the extension's core functionality.
+
 
 -------------
 

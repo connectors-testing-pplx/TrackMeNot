@@ -112,14 +112,14 @@ function loadHandlers() {
             tmn_engines.list[getEngIndexById($(this).val())].enabled = true ;
         });
         api.storage.local.set({'engines_tmn':tmn_engines});
-									
+								
     }
     
     function clearOptions() {
-		var tmn = api.extension.getBackgroundPage().TRACKMENOT.TMNSearch;
-		api.storage.local.clear();
-		tmn._resetSettings();
-		getStorage(["engines_tmn","options_tmn"],TMNLoadOptionWindow );
+			var tmn = api.extension.getBackgroundPage().TRACKMENOT.TMNSearch;
+			api.storage.local.clear();
+			tmn._resetSettings();
+			getStorage(["engines_tmn","options_tmn"],TMNLoadOptionWindow );
 	}
 
       function addEngine(param) {
@@ -156,7 +156,7 @@ function TMNSetOptionsMenu(item) {
     $("#add-engine-table").hide();
     $("#trackmenot-opt-enabled").prop('checked', options.enabled);
 	$("#trackmenot-opt-useTab").prop('checked', options.useTab);
-																
+												
     $("#trackmenot-opt-burstMode").prop('checked', options.burstMode);
 	$("#trackmenot-opt-sim-clicks").prop('checked', options.sim_clicks);
     $("#trackmenot-opt-save-logs").prop('checked', options.saveLogs);
@@ -188,113 +188,87 @@ function TMNHideQueries() {
 
 function TMNShowLog(items) {
     var logs = items.logs_tmn;
-    var htmlStr = '<table cellspacing=3 id="overlaytext" width="800px" position="relative">';
-    htmlStr += '<thead><tr align=left>';
+    var htmlStr = '<table>';
+    htmlStr += '<thead><tr>';
     htmlStr += '<th>Engine</th>';
     htmlStr += '<th>Mode</th>';
     htmlStr += '<th>URL</th>';
     htmlStr += '<th>Query/Message</th>';
     htmlStr += '<th>Date</th>';
-    htmlStr += '</tr></thead>';
+    htmlStr += '</tr></thead><tbody>';
     for (var i = 0; i < 3000 && i < logs.length; i++) {
-        htmlStr += '<tr ';
-        if (logs[i].type === 'ERROR') htmlStr += 'style="color:Red">';
-        if (logs[i].type === 'query') htmlStr += 'style="color:Black">';
-        if (logs[i].type === 'URLmap') htmlStr += 'style="color:Brown">';
-        if (logs[i].type === 'click') htmlStr += 'style="color:Blue">';
-        if (logs[i].type === 'info') htmlStr += 'style="color:Green">';
+        var rowClass = 'log-row log-' + (logs[i].type || 'info');
+        htmlStr += '<tr class="' + rowClass + '">';
         htmlStr += logs[i].engine ? '<td><b>' + logs[i].engine + '</b></td>' : '<td></td>';
         htmlStr += logs[i].mode ? '<td>' + logs[i].mode + '</td>' : '<td></td>';
         htmlStr += logs[i].newUrl ? '<td>' + logs[i].newUrl.substring(0, 50) + '</td>' : '<td></td>';
         htmlStr += logs[i].query ? '<td>' + logs[i].query + '</td>' : '<td></td>';
         htmlStr += logs[i].date ? '<td>' + logs[i].date + '</td>' : '<td></td>';
-
-        htmlStr += '</font></tr>';
+        htmlStr += '</tr>';
     }
-    htmlStr += '</table>';
+    htmlStr += '</tbody></table>';
     $('#tmn_logs_container').html(htmlStr);
-	$('#overlay_logs').css("display","block");
-	//window.setTimeout(TMNShowLog, 1000,items);
+    $('#overlay_logs').css("display", "flex");
 }
 
 
 function TMNShowEngines(item) {
-    tmn_engines= item;
-    var htmlStr = "<table>";
+    tmn_engines = item;
+    var htmlStr = '';
+    if (!tmn_engines.list || tmn_engines.list.length === 0) {
+        htmlStr = '<p class="card__hint">No search engines configured.</p>';
+    }
     for (var i = 0; i < tmn_engines.list.length; i++) {
         var engine = tmn_engines.list[i];
-        let is_checked = engine.enabled? " checked " : "";
-        htmlStr += '<div id="overlay"><tr >';
-        htmlStr += '<td > <label><input valign="top" type="checkbox"  id="' + engine.id + '" value="' + engine.id + '" ' + is_checked +'">' + engine.name + '</label></td><td><button class="smallbutton" id="del_engine_' + engine.id + '" > &nbsp;&nbsp;- &nbsp;&nbsp;</button> </td>';
-        htmlStr += '</tr></div>';
+        var is_checked = engine.enabled ? ' checked' : '';
+        htmlStr += '<div class="engine-item">';
+        htmlStr += '<label><input type="checkbox" id="' + engine.id + '" value="' + engine.id + '"' + is_checked + '><span>' + engine.name + '</span></label>';
+        htmlStr += '<button class="smallbutton" id="del_engine_' + engine.id + '" title="Remove ' + engine.name + '">Remove</button>';
+        htmlStr += '</div>';
     }
-    htmlStr += '</table>';
     $('#search-engine-list').html(htmlStr);
-    
     loadHandlers();
 }
 
 function TMNShowQueries(tmn_queries) {
-
-var htmlStr =  '<div id="quarryarray" style="height:1000px;overflow:auto;"><table witdh=500 cellspacing=3 bgcolor=white  frame=border>';
-    if ( tmn_queries.dhs ) {
-		htmlStr += '<tr style="color:Black"  bgcolor=#D6E0E0 align=center>';
-		htmlStr += '<td > DHS Monitored <td>';
-		htmlStr += '<a name="dhs"></a>';
-		htmlStr += '</tr>';
-		for (var i=0;  i<tmn_queries.dhs.length ; i++) {
-			htmlStr += '<tr style="color:Black"  bgcolor=#F0F0F0 align=center>';
-			htmlStr += '<td>' +tmn_queries.dhs[i].category_name+ '<td>';
-			htmlStr += '</tr>';
-			for (var j=0;  j< tmn_queries.dhs[i].words.length ; j++) {
-				htmlStr += '<tr style="color:Black">';
-				htmlStr += '<td>' +tmn_queries.dhs[i].words[j]+ '<td>';
-				htmlStr += '</tr>';
-			}
-		}
+    var htmlStr = '<div style="max-height:75vh;overflow:auto">';
+    if (tmn_queries.dhs) {
+        htmlStr += '<div class="qgroup"><div class="qgroup__head"><a name="dhs"></a>DHS Monitored</div>';
+        for (var i = 0; i < tmn_queries.dhs.length; i++) {
+            htmlStr += '<div class="qcat">' + tmn_queries.dhs[i].category_name + '</div>';
+            for (var j = 0; j < tmn_queries.dhs[i].words.length; j++) {
+                htmlStr += '<span class="qword">' + tmn_queries.dhs[i].words[j] + '</span>';
+            }
+        }
+        htmlStr += '</div>';
     }
-	if ( tmn_queries.rss ) {
-		htmlStr += '<tr style="color:Black"  bgcolor=#D6E0E0 align=center>';
-		htmlStr += '<td > RSS <td>';
-		htmlStr += '<a name="rss"></a>';
-		htmlStr += '</tr>';
-		for (var i=0;  i<tmn_queries.rss.length ; i++) {
-			htmlStr += '<tr style="color:Black"  bgcolor=#F0F0F0 align=center>';
-			htmlStr += '<td>' +tmn_queries.rss[i].name+ '<td>';
-			htmlStr += '</tr>';
-			for (var j=0;  j< tmn_queries.rss[i].words.length ; j++) {
-				htmlStr += '<tr style="color:Black">';
-				htmlStr += '<td>' +tmn_queries.rss[i].words[j]+ '<td>';
-				htmlStr += '</tr>';
-			}
-		}
+    if (tmn_queries.rss) {
+        htmlStr += '<div class="qgroup"><div class="qgroup__head"><a name="rss"></a>RSS</div>';
+        for (var i = 0; i < tmn_queries.rss.length; i++) {
+            htmlStr += '<div class="qcat">' + tmn_queries.rss[i].name + '</div>';
+            for (var j = 0; j < tmn_queries.rss[i].words.length; j++) {
+                htmlStr += '<span class="qword">' + tmn_queries.rss[i].words[j] + '</span>';
+            }
+        }
+        htmlStr += '</div>';
     }
-	if ( tmn_queries.zeitgeist ) {
-		htmlStr += '<tr style="color:Black"  bgcolor=#D6E0E0 align=center>';
-		htmlStr += '<td > Popular <td>';
-		htmlStr += '<a name="popular"></a>';
-		htmlStr += '</tr>';
-		for (var i=0;  i< tmn_queries.zeitgeist.length ; i++) {
-			htmlStr += '<tr style="color:Black">';
-			htmlStr += '<td>' +tmn_queries.zeitgeist[i]+ '<td>';
-			htmlStr += '</tr>';
-		}
+    if (tmn_queries.zeitgeist) {
+        htmlStr += '<div class="qgroup"><div class="qgroup__head"><a name="popular"></a>Popular</div>';
+        for (var i = 0; i < tmn_queries.zeitgeist.length; i++) {
+            htmlStr += '<span class="qword">' + tmn_queries.zeitgeist[i] + '</span>';
+        }
+        htmlStr += '</div>';
     }
-	if ( tmn_queries.extracted ) {	
-		htmlStr += '<tr style="color:Black"  bgcolor=#D6E0E0 align=center>';
-		htmlStr += '<td > Extracted <td>';
-		htmlStr += '<a name="extracted"></a>';
-		htmlStr += '</tr>';
-		for (var i=0; i<tmn_queries.extracted.length ; i++) {
-			htmlStr += '<tr style="color:Black"  bgcolor=#F0F0F0 align=center>';
-			htmlStr += '<td>' +tmn_queries.extracted[i]+ '<td>';
-			htmlStr += '</tr>';
-		}
-	}
-    htmlStr += '</table></div>';
+    if (tmn_queries.extracted) {
+        htmlStr += '<div class="qgroup"><div class="qgroup__head"><a name="extracted"></a>Extracted</div>';
+        for (var i = 0; i < tmn_queries.extracted.length; i++) {
+            htmlStr += '<span class="qword">' + tmn_queries.extracted[i] + '</span>';
+        }
+        htmlStr += '</div>';
+    }
+    htmlStr += '</div>';
     $('#tmn_queries_container').html(htmlStr);
-	$('#overlay_queries').css("display","block");
-	
+    $('#overlay_queries').css("display", "flex");
 }
 
 
@@ -304,7 +278,7 @@ function saveOptions() {
 
     console.log("Saved Enabled: " + options.enabled);
 	$("#trackmenot-opt-useTab").prop('checked', options.useTab);
-																
+												
     options.burstMode = $("#trackmenot-opt-burstMode").is(':checked');
 	options.sim_clicks = $("#trackmenot-opt-sim-clicks").is(':checked');
     options.disableLogs = $("#trackmenot-opt-disable-logs").is(':checked');
@@ -362,7 +336,6 @@ function TMNLoadOptionWindow(items) {
 window.addEventListener('load', function() {
     getStorage(["engines_tmn","options_tmn"],TMNLoadOptionWindow );
 });
-
 
 
 
